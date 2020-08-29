@@ -51,10 +51,10 @@ char shiftLetter(char ct, char shift){
 
 char* decryptStr(char* buffer, char* key){
     int keyLen = strlen(key);
-    char* decBuff = malloc(MAXFILESIZE);    
-    memset(decBuff, '\0', MAXFILESIZE);
+    char* decBuff = malloc(strlen(buffer));    
+    memset(decBuff, '\0', strlen(buffer));
 
-    for (int i=0;i<MAXFILESIZE; i++){
+    for (int i=0;i<strlen(buffer); i++){
       printf("Char %c shifted with %c to %c\n", buffer[i], key[i%keyLen], shiftLetter(buffer[i], key[i%keyLen]));
         decBuff[i] = shiftLetter(buffer[i], key[i%keyLen]);
     }
