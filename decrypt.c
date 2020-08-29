@@ -3,6 +3,9 @@
 #include <stdlib.h>
 
 #define MAXFILESIZE 1024
+#define MAXKEYSIZE 32
+
+int FILE_SIZE;
 
 
 
@@ -16,12 +19,12 @@ char* readFile(char* filename){
     if (f)
     {
         fseek (f, 0, SEEK_END);
-        length = ftell (f);
+        FILE_SIZE = ftell (f);
         fseek (f, 0, SEEK_SET);
-        buffer = malloc (length);
+        buffer = malloc (FILE_SIZE);
         if (buffer)
         {
-            fread (buffer, 1, length, f);
+            fread (buffer, 1, FILE_SIZE, f);
         }
         fclose (f);
     }
@@ -51,10 +54,10 @@ char shiftLetter(char ct, char shift){
 
 char* decryptStr(char* buffer, char* key){
     int keyLen = strlen(key);
-    char* decBuff = malloc(strlen(buffer));    
-    memset(decBuff, '\0', strlen(buffer));
+    char* decBuff = malloc(FILE_SIZE);    
+    memset(decBuff, '\0', FILE_SIZE);
 
-    for (int i=0;i<strlen(buffer); i++){
+    for (int i=0;i<FILE_SIZE; i++){
       printf("Char %c shifted with %c to %c\n", buffer[i], key[i%keyLen], shiftLetter(buffer[i], key[i%keyLen]));
         decBuff[i] = shiftLetter(buffer[i], key[i%keyLen]);
     }
@@ -73,14 +76,14 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    char key[1024];
+    char key[MAXKEYSIZE];
     printf("Enter key: ");
-    fgets(key,1024, stdin);
+    fgets(key,MAXKEYSIZE, stdin);
     char *pos;
     if ((pos=strchr(key, '\n')) != NULL)
             *pos = '\0';
 
-    char inFile[256];
+    char inFile[256] = {'\0'};
     strcpy(inFile, argv[1]);
 
     char* data = readFile(inFile);
