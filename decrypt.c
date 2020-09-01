@@ -3,7 +3,9 @@
 #include <stdlib.h>
 
 #define MAXFILESIZE 1024
-#define MAXKEYSIZE 32
+#define MAXKEYSIZE 5 //Size key takes in memory
+#define MAXKEYLEN MAXKEYSIZE-1 //Number of useable characters in key
+
 
 int FILE_SIZE;
 
@@ -13,7 +15,6 @@ char* readFile(char* filename){
 
     //https://stackoverflow.com/a/174552/5763413
     char * buffer = 0;
-    long length;
     FILE * f = fopen (filename, "rb");
 
     if (f)
@@ -24,7 +25,7 @@ char* readFile(char* filename){
         buffer = malloc (FILE_SIZE);
         if (buffer)
         {
-            fread (buffer, 1, FILE_SIZE, f);
+            int r = fread (buffer, 1, FILE_SIZE, f);
         }
         fclose (f);
     }
@@ -34,7 +35,7 @@ char* readFile(char* filename){
 }
 
 void writeFile(char* filename, char* buff){
-    
+
     FILE * fp = fopen(filename, "wb");
     if (fp){
         fputs(buff, fp);
@@ -49,7 +50,7 @@ void writeFile(char* filename, char* buff){
 
 
 char shiftLetter(char ct, char shift){
-   return (char)(((int)ct-(int)shift+127)%127);
+    return (char)(((int)ct-(int)shift+127)%127);
 }
 
 char* decryptStr(char* buffer, char* key){
@@ -58,7 +59,7 @@ char* decryptStr(char* buffer, char* key){
     memset(decBuff, '\0', FILE_SIZE);
 
     for (int i=0;i<FILE_SIZE; i++){
-      printf("Char %c shifted with %c to %c\n", buffer[i], key[i%keyLen], shiftLetter(buffer[i], key[i%keyLen]));
+        printf("Char %c shifted with %c to %c\n", buffer[i], key[i%keyLen], shiftLetter(buffer[i], key[i%keyLen]));
         decBuff[i] = shiftLetter(buffer[i], key[i%keyLen]);
     }
 
@@ -67,32 +68,56 @@ char* decryptStr(char* buffer, char* key){
 
 }
 
+typedef struct KEY {
+    char k1;
+    char k2;
+    char k3;
+    char k4;
+} KEY_t;
+
+KEY_t* generateKeys(){
+
+    const unsigned long NUMKEYS = 84934656; //(128-32)^4
+    KEY_t* KEY_LIST = (KEY_t*)calloc(NUMKEYS, sizeof(KEY_LIST[0]));
+    if (!(KEY_LIST)) return NULL;
+
+#define MIN_KEY 0x20
+#define MAX_KEY 0x7E
+#include <limits.h>
+    KEY_t tempKey;
+    
+    unsigned long int pos = 0;
+
+    for (unsigned int i=0;i<=0xFFFF;i++){
+                    tempKey.k1 = (i&0xF000)>>12;
+                    tempKey.k2 = (i&0x0F00)>> 8;
+                    tempKey.k3 = (i&0x00F0)>> 4;
+                    tempKey.k4 = (i&0x000F)>> 0;
+                    printf("%d: %d,%d,%d,%d\n", i, tempKey.k1, tempKey.k2, tempKey.k3, tempKey.k4);
+                    KEY_LIST[pos] = tempKey;
+    }
+
+
+    return KEY_LIST;
+
+}
+
+void dumbBruteForce(){
+
+    KEY_t* keyList = generateKeys();
+    if (!(keyList)){
+        printf("ERROR: malloc returned NULL\n");
+        return;
+    }
+    printf("Got here\n");
+
+
+    //printf("%c,%c,%c,%c\n", tempKey.k1, tempKey.k2, tempKey.k3, tempKey.k4);
+}
+
 int main(int argc, char* argv[]){
 
 
+    dumbBruteForce();
 
-    if (argc != 2){
-        printf("No argument supplied\n");
-        return 1;
-    }
-
-    char key[MAXKEYSIZE];
-    printf("Enter key: ");
-    fgets(key,MAXKEYSIZE, stdin);
-    char *pos;
-    if ((pos=strchr(key, '\n')) != NULL)
-            *pos = '\0';
-
-    char inFile[256] = {'\0'};
-    strcpy(inFile, argv[1]);
-
-    char* data = readFile(inFile);
-
-    char* decrypted = decryptStr(data,key);
-
-    char outFile[256] = {'\0'};
-    strcpy(outFile, inFile);
-    strcat(outFile, ".clear");
-
-    writeFile(outFile, decrypted);
 }
