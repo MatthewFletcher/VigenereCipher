@@ -68,33 +68,37 @@ char* decryptStr(char* buffer, char* key){
 
 }
 
+#include <stdint.h>
 typedef struct KEY {
-    char k1;
-    char k2;
-    char k3;
-    char k4;
+    uint8_t k1;
+    uint8_t k2;
+    uint8_t k3;
+    uint8_t k4;
 } KEY_t;
 
-KEY_t* generateKeys(){
-
-    const unsigned long NUMKEYS = 84934656; //(128-32)^4
-    KEY_t* KEY_LIST = (KEY_t*)calloc(NUMKEYS, sizeof(KEY_LIST[0]));
-    if (!(KEY_LIST)) return NULL;
-
+#include <omp.h>
 #define MIN_KEY 0x20
 #define MAX_KEY 0x7E
 #include <limits.h>
+const unsigned long NUMKEYS = 84934656; //(128-32)^4
+KEY_t* generateKeys(){
+
+    KEY_t* KEY_LIST = (KEY_t*)malloc(NUMKEYS*sizeof(KEY_t*));
+    if (!(KEY_LIST)) return NULL;
+
     KEY_t tempKey;
-    
+
     unsigned long int pos = 0;
 
-    for (unsigned int i=0;i<=0xFFFF;i++){
-                    tempKey.k1 = (i&0xF000)>>12;
-                    tempKey.k2 = (i&0x0F00)>> 8;
-                    tempKey.k3 = (i&0x00F0)>> 4;
-                    tempKey.k4 = (i&0x000F)>> 0;
-                    printf("%d: %d,%d,%d,%d\n", i, tempKey.k1, tempKey.k2, tempKey.k3, tempKey.k4);
-                    KEY_LIST[pos] = tempKey;
+#pragma omp simd simdlen(8)
+    for (uint64_t i=0x20202020;i<=0xFFFFFFFF;i++){
+        tempKey.k1 = ((i&0x5F000000)>> 24) + MIN_KEY; 
+        tempKey.k2 = ((i&0x005F0000)>> 16 ) + MIN_KEY;
+        tempKey.k3 = ((i&0x00005F00)>>  8 ) + MIN_KEY;
+        tempKey.k4 = ((i&0x0000005F)>>  0 ) + MIN_KEY;
+        if(!(i%200000000))  printf("%lu: %d,%d,%d,%d\n", i, tempKey.k1, tempKey.k2, tempKey.k3, tempKey.k4);
+        //getchar();
+        KEY_LIST[pos] = tempKey;
     }
 
 
@@ -109,7 +113,10 @@ void dumbBruteForce(){
         printf("ERROR: malloc returned NULL\n");
         return;
     }
-    printf("Got here\n");
+
+    KEY_t tempKey = keyList[420000];
+
+        printf("%d,%d,%d,%d\n",  tempKey.k1, tempKey.k2, tempKey.k3, tempKey.k4);
 
 
     //printf("%c,%c,%c,%c\n", tempKey.k1, tempKey.k2, tempKey.k3, tempKey.k4);
