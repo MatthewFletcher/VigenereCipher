@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 #include <omp.h>
-#define MIN_KEY 0x20
+#define MIN_KEY 0x0
 #define MAX_KEY 0x7E
 #include <limits.h>
 
@@ -98,13 +98,13 @@ KEY_t* generateKeys(){
 
     unsigned long int startPos = 0x202020;
 
-#pragma omp simd simdlen(8)
-    for (uint64_t i=startPos;i<=0xFFFFFF;i++){
-        tempKey.k1 = ((i&0x5F0000)>> 16 ) + MIN_KEY;
-        tempKey.k2 = ((i&0x005F00)>>  8 ) + MIN_KEY;
-        tempKey.k3 = ((i&0x00005F)>>  0 ) + MIN_KEY;
-        if(!(i%100))  printf("%lu: %d,%d,%d\n", i-startPos, tempKey.k1, tempKey.k2, tempKey.k3);
-        //getchar();
+//#pragma omp simd simdlen(8)
+    for (uint64_t i=startPos;i<0xFFFFFF;i++){
+        tempKey.k1 = ((i&0x5F0000)>> 16) + MIN_KEY;
+        tempKey.k2 = ((i&0x005F00)>> 8 ) + MIN_KEY;
+        tempKey.k3 = ((i&0x00005F)>> 0 ) + MIN_KEY;
+        if(1)  printf("%lu\t%d\t%d\t%d\n", i-startPos, tempKey.k1, tempKey.k2, tempKey.k3);
+        getchar();
         KEY_LIST[i-startPos] = tempKey;
     }
 
@@ -121,11 +121,6 @@ void dumbBruteForce(){
         return;
     }
 
-    for (int i=0; i<50; i++){
-        KEY_t tempKey = keyList[i];
-        printf("%d: %d,%d,%d\n", i, tempKey.k1, tempKey.k2, tempKey.k3);
-
-    }
 
 
 
