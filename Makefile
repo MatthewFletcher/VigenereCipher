@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -O3 -fopenmp -Wall -std=gnu11
+CFLAGS= -O0 -fopenmp -Wall -std=gnu11 -pg
 EXEC= -o decrypt
 
 decrypt: decrypt.c
