@@ -107,8 +107,8 @@ char* decryptStr(char* buffer, char* key){
         //printf("Char %c shifted with %c to %c\n", buffer[i], key[i%keyLen], shiftLetter(buffer[i], key[i%keyLen]));
         decBuff[i] = shiftLetter(buffer[i], key[i%keyLen]);
     }
-    printf("Encrypted: |%s|\n", buffer);
-    printf("Decrypted: |%s|\n", decBuff);
+    //printf("Encrypted: |%s|\n", buffer);
+    //printf("Decrypted: |%s|\n", decBuff);
 
     return decBuff;
 }
@@ -122,9 +122,9 @@ int checkWordInDictionary(char* word){
     //If word is not null, check in dictionary
     //char c1=word[0];
     for(int i=0;i<DICTLENGTH;i++){
-        printf("Comparing: |%s| and |%s| \n", word, DICTIONARY[i]);
+        //printf("Comparing: |%s| and |%s| \n", word, DICTIONARY[i]);
         if (!strcasecmp(word,DICTIONARY[i])){
-            printf("Matched |%s| with |%s|\n", word, DICTIONARY[i]);
+           // printf("Matched |%s| with |%s|\n", word, DICTIONARY[i]);
             return i;
         }	
 
@@ -141,8 +141,8 @@ double getPercentInDict(char* data, char* key){
     decrypted  = decryptStr(data, key);
     //TODO remove, debugging statement
     //decrypted = DATA;
-    printf("Decrypted text: |%s|\n", decrypted);
-    printf("Decrypted text length: |%lu|\n", strlen(decrypted));
+    //printf("Decrypted text: |%s|\n", decrypted);
+    //printf("Decrypted text length: |%lu|\n", strlen(decrypted));
 
     char delim[] = {' ','\0'};
     char* ptr = strtok(decrypted, delim);
@@ -155,17 +155,17 @@ double getPercentInDict(char* data, char* key){
         if (!ptr) break;
         totalCt++;
         //ptr holds current word
-        printf("Checking word >%s<\n", ptr);
+        //printf("Checking word >%s<\n", ptr);
         switch (checkWordInDictionary(ptr)){
             case -2:
-                printf("NULL string passed to function\n");
+                //printf("NULL string passed to function\n");
                 goto ENDLOOP;
                 break;
             case -1:
-                printf("Word %s not found in dictionary\n", ptr);
+                //printf("Word %s not found in dictionary\n", ptr);
                 break;
             default:
-                printf("Word %s found in dictionary\n", ptr);
+                //printf("Word %s found in dictionary\n", ptr);
                 dictCt++;
                 break;
         }
@@ -177,34 +177,60 @@ ENDLOOP: ;
          //https://stackoverflow.com/questions/18496282
 
          double percent =  (double)dictCt/(double)totalCt;
-         printf("%f%% of words found in dictionary\n",100*percent);
+         //if (percent) printf("%f%% of words found in dictionary\n",100*percent);
 
          return percent;
 }
 
-void dumbBruteForce(char* DATA){
+typedef struct keyResult
+{
+    char key[4];
+    double percent;
+} keyResult_t;
+
+keyResult_t dumbBruteForce(char* DATA){
 
     double maxPercent = 0;
     double percent;
-
     char key[4] = {' ',' ',' '};
+
+    keyResult_t best;
+    strcpy(best.key,key);
+    best.percent = 0;
+    
+
     for (int i=MIN_KEY; i<=MAX_KEY; i++){
         for (int j=MIN_KEY; j<=MAX_KEY; j++){
             for (int k=MIN_KEY; k<=MAX_KEY; k++){
-                printf("\nUsing key [%s]\n", key);
+                //printf("\nUsing key [%s]\n", key);
                 sprintf(key,"%c%c%c", i,j,k);
                 percent = getPercentInDict(DATA, key);
                 if(percent>maxPercent){
-                    printf("KEY: %s\tPercent: %f\n", key, percent);
+                    maxPercent = percent;
+                    //printf("KEY: %s\tPercent: %f\n", key, percent);
+                    strcpy(best.key,key);
+                    best.percent = percent;
+
+                    printf("KEY: %s\tPercent: %3.2f\n", key, 100*percent);
+
+                    strcpy(best.key,key);
+
+                    if (maxPercent > 0.99) goto CRACKED;
                 }
             }
         }
     }
+
+CRACKED:
+
+    //printf("Best Key: %s @ %f\n", best.key, best.percent); 
+    return best;
 }
 
 int main(int argc, char* argv[]){
     initDictionary();
     char* DATA = readFile("text.txt.vig");
-    double f = getPercentInDict(DATA,"ABC");
-    //dumbBruteForce(DATA);
+    //double f = getPercentInDict(DATA,"ABC");
+    keyResult_t r = dumbBruteForce(DATA);
+    printf("Key %s decrypted with score of %3.2f\nDecrypted Message: %s", r.key, r.percent, decryptStr(DATA,r.key));
 }
