@@ -128,7 +128,7 @@ int checkWordInDictionary(char* word, int start, int end){
     //printf("Comparing %s to %s\n", word, DICTIONARY[mid]);
     int r = strcmp(word, DICTIONARY[mid]);
     if (r==0){
-        printf("Comparing %s to %s\n", word, DICTIONARY[mid]);
+        //printf("Comparing %s to %s\n", word, DICTIONARY[mid]);
         return mid;
     }
     //If word not found, abort
@@ -214,16 +214,12 @@ keyResult_t dumbBruteForce(char* DATA){
                 // printf("\nUsing key [%s]\n", key);
                 sprintf(key,"%c%c%c", i,j,k);
                 percent = getPercentInDict(DATA, key);
-                if(percent>maxPercent){
-                    maxPercent = percent;
-                    //printf("KEY: %s\tPercent: %f\n", key, percent);
+                    printf("KEY: %s\tPercent: %f\n", key, percent);
+                if(percent > 0){
                     strcpy(best.key,key);
                     best.percent = percent;
                     strcpy(best.key,key);
-
-
                     printf("Key %s decrypted with score of %3.2f\nDecrypted Message:|%s|\n", best.key, best.percent, decryptStr(DATA,best.key));
-
                     //                   if (maxPercent > 0.99) goto CRACKED;
                 }
             }
@@ -238,13 +234,7 @@ keyResult_t dumbBruteForce(char* DATA){
 
 int main(int argc, char* argv[]){
     initDictionary();
-#ifdef DEBUG
-    char* DATA = readFile("text.txt");
-#else 
     char* DATA = readFile("text.txt.vig");
-#endif
-
-    //double f = getPercentInDict(DATA,"ABC");
     keyResult_t r = dumbBruteForce(DATA);
-    printf("Key %s decrypted with score of %3.2f\nDecrypted Message: %s", r.key, r.percent, decryptStr(DATA,r.key));
+    return 0;
 }
