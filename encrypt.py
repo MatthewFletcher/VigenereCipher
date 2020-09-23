@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import sys
+
 
 def shiftChr(orig, shiftChar, encrypt=True):
     if encrypt:
@@ -42,8 +44,11 @@ def decryptFile(fileName, key):
         
 
 def main():
-    inFile = input("Enter file to encrypt: ")
-    key = input("Enter key: ")
+    if len(sys.argv) < 3:
+        print("ERROR: not enough arguments")
+        return;
+    inFile = sys.argv[1];
+    key = sys.argv[2];
     encryptFile(inFile, key)
 
 
