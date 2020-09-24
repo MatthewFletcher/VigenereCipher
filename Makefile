@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -O0 -fopenmp -Wall -std=gnu11 -pg
+CFLAGS= -Ofast -fopenmp -Wall -std=gnu11 -pg
 PT= -DDEBUG="TRUE"
 CT= 
 EXEC= -o decrypt
