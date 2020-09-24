@@ -13,13 +13,7 @@
 #define MAX_KEY 0x7A
 #include <limits.h>
 
-typedef struct KEY {
-    uint8_t k1;
-    uint8_t k2;
-    uint8_t k3;
-} KEY_t;
 
-int FILE_SIZE;
 
 #define MAXWORDLENGTH 24
 #define DICTLENGTH 102305
@@ -27,7 +21,13 @@ int FILE_SIZE;
 #define _GNU_SOURCE
 
 
-char DICTIONARY[DICTLENGTH][MAXWORDLENGTH];
+#include "decrypt.h"
+
+int main(int argc, char* argv[]){
+    masterDecrypt("text.txt.vig");
+    return 0;
+}
+
 void initDictionary(){
 
     FILE * fp;
@@ -191,13 +191,6 @@ ENDLOOP: ;
          return percent;
 }
 
-typedef struct KeyResult
-{
-    char key[4];
-    double percent;
-    char* decrypted;
-} KeyResult_t;
-
 
 void printNode(KeyResult_t* node){
         printf("Key %s\t Score %3.2f\tMessage:|%s|\n", node->key, node->percent, node->decrypted);
@@ -262,9 +255,4 @@ void masterDecrypt(const char* filename){
         printf("No decryption keys found\n");
     }
 
-}
-
-int main(int argc, char* argv[]){
-    masterDecrypt("text.txt.vig");
-    return 0;
 }
