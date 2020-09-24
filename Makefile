@@ -1,13 +1,19 @@
 CC=gcc
 CFLAGS= -Ofast -fopenmp -Wall -std=gnu11 -pg
-PT= -DDEBUG="TRUE"
-CT= 
-EXEC= -o decrypt
+EXECNAME=decrypt
+EXEC= -o $(EXECNAME)
+PTFILE= text.txt
+WORDLIST=/usr/share/dict/american-english 
+MESSAGELENGTH=500
 
+decrypt: decrypt.c decrypt.h Makefile
+	$(CC)  $(CFLAGS) decrypt.c $(EXEC) 
 
-decrypt: decrypt.c 
-	$(CC)  $(CFLAGS) decrypt.c $(EXEC) $(CT)
+generateMessage:
+	@shuf -n $(MESSAGELENGTH) $(WORDLIST) | tr '\n' ' ' > text.txt
 
-debug: decrypt.c 
-	$(CC)  $(CFLAGS) decrypt.c $(EXEC) $(PT)
+encrypt:
+	@./encrypt.py $(PTFILE) 'zyx'
 
+run:
+	@./$(EXECNAME)
