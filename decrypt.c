@@ -51,7 +51,7 @@ void initDictionary(){
         free(line);
 }
 
-char* readFile(char* filename){
+char* readFile(const char* filename){
     //https://stackoverflow.com/a/174552/5763413
     char * buffer = 0;
     FILE * f = fopen (filename, "rb");
@@ -203,11 +203,12 @@ void printNode(KeyResult_t* node){
         printf("Key %s\t Score %3.2f\tMessage:|%s|\n", node->key, node->percent, node->decrypted);
 }
 
-KeyResult_t* dumbBruteForce(char* DATA){
+KeyResult_t** dumbBruteForce(char* DATA){
 
-    KeyResult_t* bestList = malloc(10 * sizeof(KeyResult_t));
+    int listSize = 10;
+    KeyResult_t** bestList = malloc(listSize * sizeof(KeyResult_t*));
+    int idx = 0;
 
-    double maxPercent = 0;
     double percent;
     char key[4] = {' ',' ',' '};
 
@@ -220,7 +221,8 @@ KeyResult_t* dumbBruteForce(char* DATA){
                 sprintf(key,"%c%c%c", i,j,k);
                 percent = getPercentInDict(DATA, key);
                     //printf("KEY: %s\tPercent: %f\n", key, percent);
-                if(percent > 0.75){
+                const double THRESHOLD = 0.6;
+                if(percent > THRESHOLD){
                     KeyResult_t* toAdd = (KeyResult_t*) malloc(sizeof(KeyResult_t));
                     if (toAdd == NULL) printf("ERROR allocating for toAdd\n");
 
@@ -235,11 +237,13 @@ KeyResult_t* dumbBruteForce(char* DATA){
                         continue;
                     }
 
+
                     //Set percentage
                     toAdd->percent = percent;
                     //Set key
                     strcpy(toAdd->key, key);
                     printNode(toAdd);
+                    bestList[idx++] = toAdd;
                 }
             }
         }
@@ -250,9 +254,17 @@ KeyResult_t* dumbBruteForce(char* DATA){
     return bestList;
 }
 
-int main(int argc, char* argv[]){
+void masterDecrypt(const char* filename){
     initDictionary();
-    char* DATA = readFile("text.txt.vig");
-    KeyResult_t* r = dumbBruteForce(DATA);
+    char* DATA = readFile(filename);
+    KeyResult_t** results = dumbBruteForce(DATA);
+    if (results[0] == NULL){
+        printf("No decryption keys found\n");
+    }
+
+}
+
+int main(int argc, char* argv[]){
+    masterDecrypt("text.txt.vig");
     return 0;
 }
