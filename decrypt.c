@@ -250,7 +250,7 @@ KeyResult_t** dumbBruteForce(char* DATA){
     }
 
 
-    //printf("Best Key: %s @ %f\n", best.key, best.percent); 
+    //Returning a value in case I want to play around with this more in the future
     return bestList;
 }
 
