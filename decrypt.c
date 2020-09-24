@@ -191,21 +191,55 @@ ENDLOOP: ;
          return percent;
 }
 
-typedef struct keyResult
+typedef struct KeyResult
 {
     char key[4];
     double percent;
-} keyResult_t;
+    struct KeyResult* next;
+    char* decrypted;
+} KeyResult_t;
 
-keyResult_t dumbBruteForce(char* DATA){
+
+void printBestList(KeyResult_t* list){
+    printf("PBL Called\n");
+    KeyResult_t* temp = list;
+    do{
+        printf("Key %s\t Score %3.2f\tMessage:|%s|\n", temp->key, temp->percent, temp->decrypted);
+    }while( (temp->next != NULL) && (temp = temp->next));
+}
+
+void addToBestList(KeyResult_t* toAdd, KeyResult_t* list){
+    printf("Adding key >%s<\n", toAdd->key);
+
+
+    if (list==NULL){
+        printf("List is empty\n");
+        list = toAdd;
+        return;
+    }
+    KeyResult_t* temp = list;
+    printf("temp = %p\n", (void*)&temp);
+    printf("percent: %2.2f\n", toAdd->percent);
+    printf("percent: %2.2f\n", temp->percent);
+    while ((temp!=NULL) && (toAdd->percent > temp->percent)){
+        printf("here1\n");
+        printf("In loop\n");
+        temp = temp->next;
+    }
+    temp->next = toAdd;
+    
+    printBestList(list);
+}
+
+
+KeyResult_t* dumbBruteForce(char* DATA){
+
+    KeyResult_t* bestList = NULL;
 
     double maxPercent = 0;
     double percent;
     char key[4] = {' ',' ',' '};
 
-    keyResult_t best;
-    strcpy(best.key,key);
-    best.percent = 0;
 
 
     for (int i=MIN_KEY; i<=MAX_KEY; i++){
@@ -214,27 +248,37 @@ keyResult_t dumbBruteForce(char* DATA){
                 // printf("\nUsing key [%s]\n", key);
                 sprintf(key,"%c%c%c", i,j,k);
                 percent = getPercentInDict(DATA, key);
-                    printf("KEY: %s\tPercent: %f\n", key, percent);
-                if(percent > 0){
-                    strcpy(best.key,key);
-                    best.percent = percent;
-                    strcpy(best.key,key);
-                    printf("Key %s decrypted with score of %3.2f\nDecrypted Message:|%s|\n", best.key, best.percent, decryptStr(DATA,best.key));
-                    //                   if (maxPercent > 0.99) goto CRACKED;
+                    //printf("KEY: %s\tPercent: %f\n", key, percent);
+                if(percent > 0.75){
+                    printf("Adding key %s\n", key);
+                    KeyResult_t* toAdd = (KeyResult_t*) malloc(sizeof(KeyResult_t));
+                    if (toAdd == NULL) printf("ERROR allocating for toAdd\n");
+                    toAdd->next = NULL;
+                    strcpy(toAdd->key,key);
+                    toAdd->decrypted = (char*) calloc(strlen(DATA), sizeof(char));
+                    if (toAdd->decrypted== NULL) printf("ERROR allocating for toAdd->decrypted\n");
+                    char* tmp = strcpy(toAdd->decrypted, decryptStr(DATA,key));
+                    printf("Strcpy result: |%s|", tmp);
+                    toAdd->percent = percent;
+                    printf("Value of bestList: %p\n", (void*) bestList);
+                    addToBestList(toAdd, bestList);
+                    printf("Value of bestList: %p\n", (void*) bestList);
+                    printf(">>");
+                    getchar();
                 }
             }
         }
     }
 
-    //CRACKED:
 
     //printf("Best Key: %s @ %f\n", best.key, best.percent); 
-    return best;
+    return bestList;
 }
 
 int main(int argc, char* argv[]){
     initDictionary();
     char* DATA = readFile("text.txt.vig");
-    keyResult_t r = dumbBruteForce(DATA);
+    KeyResult_t* r = dumbBruteForce(DATA);
+    printBestList(r);
     return 0;
 }
