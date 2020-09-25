@@ -4,7 +4,7 @@ EXECNAME=decrypt
 EXEC= -o $(EXECNAME)
 PTFILE= text.txt
 WORDLIST=/usr/share/dict/american-english 
-MESSAGELENGTH=500
+MESSAGELENGTH=1000
 
 decrypt: decrypt.c decrypt.h Makefile
 	$(CC)  $(CFLAGS) decrypt.c $(EXEC) 
