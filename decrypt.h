@@ -1,6 +1,8 @@
 #ifndef DECRYPT_H
 #define DECRYPT_H
 int FILE_SIZE;
+#define MAXWORDLENGTH 24
+#define DICTLENGTH 102305
 char DICTIONARY[DICTLENGTH][MAXWORDLENGTH];
 typedef struct KeyResult
 {
