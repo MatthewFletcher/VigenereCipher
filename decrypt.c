@@ -15,7 +15,16 @@
 
 
 int main(int argc, char* argv[]){
+    //If key was passed as command line arg, decrypt with that
+    if (argc > 1){
+        char* result = (char*) malloc(FILE_SIZE * sizeof(char));
+        result = decryptStr(readFile("text.txt.vig"), argv[1]);
+        printf("Decrypted message:\n%s", result);
+    }
+    //Otherwise, do the brute force method
+    else{
     masterDecrypt("text.txt.vig");
+    }
     return 0;
 }
 
@@ -251,6 +260,7 @@ KeyResult_t** dumbBruteForce(char* DATA){
     //Returning a value in case I want to play around with this more in the future
     return bestList;
 }
+
 
 void masterDecrypt(const char* filename){
     initDictionary();
