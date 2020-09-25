@@ -107,14 +107,10 @@ char shiftLetter(char ct, char shift){
 char* decryptStr(char* buffer, char* key){
     int keyLen = strlen(key);
     char* decBuff = calloc(FILE_SIZE, sizeof(char));    
-    //memset(decBuff, '\0', FILE_SIZE);
 
     for (int i=0;i<FILE_SIZE; i++){
-        //printf("Char %c shifted with %c to %c\n", buffer[i], key[i%keyLen], shiftLetter(buffer[i], key[i%keyLen]));
         decBuff[i] = shiftLetter(buffer[i], key[i%keyLen]);
     }
-    //printf("Encrypted: |%s|\n", buffer);
-    //printf("Decrypted: |%s|\n", decBuff);
 
     return decBuff;
 }
@@ -128,12 +124,9 @@ int checkWordInDictionary(char* word, int start, int end){
 
     if (strlen(word) > MAXWORDLENGTH) return -1;
     int mid = (start+end)/2;
-    //printf("Comparing from %s to %s\n", DICTIONARY[start], DICTIONARY[mid]);
     //If word is not null, check in dictionary
-    //printf("Comparing %s to %s\n", word, DICTIONARY[mid]);
     int r = strcmp(word, DICTIONARY[mid]);
     if (r==0){
-        //printf("Comparing %s to %s\n", word, DICTIONARY[mid]);
         return mid;
     }
     //If word not found, abort
@@ -141,7 +134,6 @@ int checkWordInDictionary(char* word, int start, int end){
 
     if (r<0) return checkWordInDictionary(word, start,mid);
     else return checkWordInDictionary(word, mid,end);
-    //if word not found in dictionary, return -1
 }
 
 /* Returns a score from 0 to 1 representing the number of 
@@ -166,20 +158,16 @@ double getPercentInDict(char* data, char* key){
         if (!ptr) break;
         totalCt++;
         //ptr holds current word
-        //printf("Checking word >%s<\n", ptr);
         switch (checkWordInDictionary(ptr, 0,DICTLENGTH-1)){
             //Edge case: word is NULL
             case -2:
-                //printf("NULL string passed to function\n");
                 goto ENDLOOP;
                 break;
             //Word not found in dictionary, go to next iteration
             case -1:
-                //printf("Word %s not found in dictionary\n", ptr);
                 break;
             //Word found in dictionary, increment dict count
             default:
-                //printf("Word %s found in dictionary\n", ptr);
                 dictCt++;
                 break;
         }
@@ -194,7 +182,6 @@ ENDLOOP: ;
          if (abs(strlen(data) - FILE_SIZE)>3) return 0;
 
          double percent =  (double)dictCt/(double)totalCt;
-         //if (percent) printf("%f%% of words found in dictionary\n",100*percent);
 
          return percent;
 }
@@ -224,10 +211,8 @@ KeyResult_t** dumbBruteForce(char* DATA){
     for (int i=MIN_KEY; i<=MAX_KEY; i++){
         for (int j=MIN_KEY; j<=MAX_KEY; j++){
             for (int k=MIN_KEY; k<=MAX_KEY; k++){
-                // printf("\nUsing key [%s]\n", key);
                 sprintf(key,"%c%c%c", i,j,k);
                 percent = getPercentInDict(DATA, key);
-                    //printf("KEY: %s\tPercent: %f\n", key, percent);
                 const double THRESHOLD = 0.6;
                 if(percent > THRESHOLD){
                     KeyResult_t* toAdd = (KeyResult_t*) malloc(sizeof(KeyResult_t));
@@ -239,7 +224,6 @@ KeyResult_t** dumbBruteForce(char* DATA){
                     if (toAdd->decrypted== NULL) printf("ERROR allocating for toAdd->decrypted\n");
                     char* tmp = strcpy(toAdd->decrypted, decryptStr(DATA,key));
 
-                    //printf("length diff for %s: %d\n", key, abs(strlen(tmp)-FILE_SIZE));
                     if(abs(strlen(tmp) - FILE_SIZE)>3){
                         continue;
                     }
