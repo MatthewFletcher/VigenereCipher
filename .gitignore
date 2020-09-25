@@ -52,7 +52,7 @@ Mkfile.old
 dkms.conf
 
 .*.swp
-.*.*.sw[po]
+.*.sw[po]
 __pycache__/
 decrypt
 output
