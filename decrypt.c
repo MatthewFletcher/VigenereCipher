@@ -1,48 +1,44 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-#define MAXFILESIZE 1024
-#define MAXKEYSIZE 4 //Size key takes in memory
-#define MAXKEYLEN MAXKEYSIZE-1 //Number of useable characters in key
-
 #include <stdint.h>
-
 #include <omp.h>
-#define MIN_KEY 0x41
-#define MAX_KEY 0x7A
 #include <limits.h>
+#include "decrypt.h"
 
+#define MIN_KEY 0x30
+#define MAX_KEY 0x7A
 
-
-#define MAXWORDLENGTH 24
-#define DICTLENGTH 102305
 #define DICTIONARYPATH "/usr/share/dict/american-english"
 #define _GNU_SOURCE
 
 
-#include "decrypt.h"
 
 int main(int argc, char* argv[]){
     masterDecrypt("text.txt.vig");
     return 0;
 }
 
+/*
+ * Read dictionary from DICTIONARYPATH
+ */
 void initDictionary(){
-
     FILE * fp;
     char * line = NULL;
     size_t len = 0;
     ssize_t read;
 
+    //Open file, check for sucess
     fp = fopen(DICTIONARYPATH, "r");
     if (fp == NULL){
         printf("ERROR opening dictionary\n");
         exit(EXIT_FAILURE);
     }
-
+    
+    //For each line in file, read it into dictionary array
     int idx = 0;
     while ((read = getline(&line, &len, fp)) != -1) {
+        //Strip last character (\n)
         strncpy(DICTIONARY[idx], line, strlen(line)-1);
         idx++;
     }
@@ -139,22 +135,22 @@ int checkWordInDictionary(char* word, int start, int end){
     //if word not found in dictionary, return -1
 }
 
+/* Returns a score from 0 to 1 representing the number of 
+ * words in the decrypted string that are found in the dictionary 
+ */
 double getPercentInDict(char* data, char* key){
     int totalCt = 0;
     int dictCt = 0;
     char* decrypted = (char*) calloc(FILE_SIZE, sizeof(char));
     decrypted  = decryptStr(data, key);
-#ifdef DEBUG
-    decrypted = data;
-#endif
-    //printf("Decrypted text: |%s|\n", decrypted);
-    //printf("Decrypted text length: |%lu|\n", strlen(decrypted));
 
     char delim[] = {' ','\0'};
     char* ptr = strtok(decrypted, delim);
 
     int idx = 0;
 
+    //iterate through each word
+    //https://fresh2refresh.com/c-programming/c-strings/c-strtok-function/
     while((ptr != NULL) || (idx++ < FILE_SIZE))
     {
 
@@ -163,25 +159,28 @@ double getPercentInDict(char* data, char* key){
         //ptr holds current word
         //printf("Checking word >%s<\n", ptr);
         switch (checkWordInDictionary(ptr, 0,DICTLENGTH-1)){
+            //Edge case: word is NULL
             case -2:
                 //printf("NULL string passed to function\n");
                 goto ENDLOOP;
                 break;
+            //Word not found in dictionary, go to next iteration
             case -1:
                 //printf("Word %s not found in dictionary\n", ptr);
                 break;
+            //Word found in dictionary, increment dict count
             default:
                 //printf("Word %s found in dictionary\n", ptr);
                 dictCt++;
                 break;
         }
+        //Get next word in phrase
         ptr = strtok(NULL, delim);
     }
     //Please forgive me for using a goto, but it was the cleanest way
 ENDLOOP: ; 
          //SEMICOLON MUST STAY IN HERE
          //https://stackoverflow.com/questions/18496282
-         //
 
          if (abs(strlen(data) - FILE_SIZE)>3) return 0;
 
@@ -191,13 +190,19 @@ ENDLOOP: ;
          return percent;
 }
 
-
+/*
+ * Print out a single result
+ * Leftover from when I tried to make this a linked list but 
+ * got sick of trying to argue with pointers
+ */
 void printNode(KeyResult_t* node){
         printf("Key %s\t Score %3.2f\tMessage:|%s|\n", node->key, node->percent, node->decrypted);
 }
 
+/* The big kahuna. Iterate through every possible 3 digit key of printable ascii characters. 
+ * If the percentage is greater than the threshold, 0.6, then print out the result
+ */
 KeyResult_t** dumbBruteForce(char* DATA){
-
     int listSize = 10;
     KeyResult_t** bestList = malloc(listSize * sizeof(KeyResult_t*));
     int idx = 0;
@@ -235,14 +240,14 @@ KeyResult_t** dumbBruteForce(char* DATA){
                     toAdd->percent = percent;
                     //Set key
                     strcpy(toAdd->key, key);
+                    //Set key
+                    strcpy(toAdd->key, key);
                     printNode(toAdd);
                     bestList[idx++] = toAdd;
                 }
             }
         }
     }
-
-
     //Returning a value in case I want to play around with this more in the future
     return bestList;
 }
@@ -254,5 +259,4 @@ void masterDecrypt(const char* filename){
     if (results[0] == NULL){
         printf("No decryption keys found\n");
     }
-
 }
